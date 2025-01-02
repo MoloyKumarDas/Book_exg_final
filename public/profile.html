@@ -1,0 +1,370 @@
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile</title>
+</head>
+<body>
+    <h1>Welcome to your profile!</h1>
+    <button id="addBookButton">Add Book</button>
+    <button id="searchBookButton">Search Book</button>
+    <button id="addedBooksButton">Added Books</button>
+
+    <div id="bookForm" style="display: none;">
+        <h2>Add a Book</h2>
+        <form id="bookFormElement">
+            <label for="bookName">Book Name:</label>
+            <input type="text" id="bookName" name="bookName" required><br>
+            <label for="bookGenre">Book Genre:</label>
+            <input type="text" id="bookGenre" name="bookGenre" required><br>
+            <label for="bookAuthor">Book Author:</label>
+            <input type="text" id="bookAuthor" name="bookAuthor" required><br>
+            <button type="submit">Save Book</button>
+        </form>
+    </div>
+
+    <div id="searchForm" style="display: none;">
+        <h2>Search a Book</h2>
+        <form id="searchFormElement">
+            <label for="searchQuery">Search:</label>
+            <input type="text" id="searchQuery" name="searchQuery" required><br>
+            <button type="submit">Search</button>
+        </form>
+        <div id="searchResults"></div>
+    </div>
+
+    <div id="addedBooks" style="display: none;">
+        <h2>Added Books</h2>
+        <div id="addedBooksResults"></div>
+    </div>
+
+    <script>
+        document.getElementById('addBookButton').addEventListener('click', () => {
+            const bookForm = document.getElementById('bookForm');
+            bookForm.style.display = bookForm.style.display === 'none' || bookForm.style.display === '' ? 'block' : 'none';
+        });
+
+        document.getElementById('searchBookButton').addEventListener('click', () => {
+            const searchForm = document.getElementById('searchForm');
+            if (searchForm.style.display === 'none' || searchForm.style.display === '') {
+                searchForm.style.display = 'block';
+            } else {
+                searchForm.style.display = 'none';
+                document.getElementById('searchFormElement').reset(); // Clear the search form fields
+                document.getElementById('searchResults').innerHTML = ''; // Clear the search results
+            }
+        });
+
+        document.getElementById('addedBooksButton').addEventListener('click', async () => {
+            const addedBooks = document.getElementById('addedBooks');
+            const userEmail = localStorage.getItem('userEmail'); // Assuming userEmail is stored in localStorage
+
+            if (addedBooks.style.display === 'none' || addedBooks.style.display === '') {
+                try {
+                    const response = await fetch(`http://localhost:5000/addedBooks?userEmail=${encodeURIComponent(userEmail)}`, {
+                        method: 'GET',
+                        headers: { 'Content-Type': 'application/json' },
+                    });
+
+                    if (response.status === 200) {
+                        const books = await response.json();
+                        const addedBooksResults = document.getElementById('addedBooksResults');
+                        addedBooksResults.innerHTML = '';
+
+                        if (books.length > 0) {
+                            books.forEach(book => {
+                                const bookDetails = `
+                                    <div>
+                                        <h3>${book.bookName}</h3>
+                                        <p>Genre: ${book.bookGenre}</p>
+                                        <p>Author: ${book.bookAuthor}</p>
+                                    </div>
+                                `;
+                                addedBooksResults.innerHTML += bookDetails;
+                            });
+                        } else {
+                            addedBooksResults.innerHTML = '<p>No books found.</p>';
+                        }
+                    } else {
+                        alert('An error occurred. Please try again.');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('Unable to connect to the server.');
+                }
+                addedBooks.style.display = 'block';
+            } else {
+                addedBooks.style.display = 'none';
+                document.getElementById('addedBooksResults').innerHTML = ''; // Clear the added books results
+            }
+        });
+
+        document.getElementById('bookFormElement').addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            const bookName = document.getElementById('bookName').value;
+            const bookGenre = document.getElementById('bookGenre').value;
+            const bookAuthor = document.getElementById('bookAuthor').value;
+            const userEmail = localStorage.getItem('userEmail'); // Assuming userEmail is stored in localStorage
+
+            try {
+                const response = await fetch('http://localhost:5000/addBook', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ bookName, bookGenre, bookAuthor, userEmail }),
+                });
+
+                if (response.status === 201) {
+                    alert('Book added successfully!');
+                    document.getElementById('bookFormElement').reset(); // Clear the form fields
+                    document.getElementById('bookForm').style.display = 'none';
+                } else if (response.status === 400) {
+                    alert('Book already exists. Please try another one.');
+                } else {
+                    alert('An error occurred. Please try again.');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Unable to connect to the server.');
+            }
+        });
+
+        document.getElementById('searchFormElement').addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            const searchQuery = document.getElementById('searchQuery').value;
+
+            try {
+                const response = await fetch(`http://localhost:5000/searchBook?query=${encodeURIComponent(searchQuery)}`, {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' },
+                });
+
+                if (response.status === 200) {
+                    const books = await response.json();
+                    const searchResults = document.getElementById('searchResults');
+                    searchResults.innerHTML = '';
+
+                    if (books.length > 0) {
+                        books.forEach(book => {
+                            const bookDetails = `
+                                <div>
+                                    <h3>${book.bookName}</h3>
+                                    <p>Genre: ${book.bookGenre}</p>
+                                    <p>Author: ${book.bookAuthor}</p>
+                                    <p>Owner: ${book.ownerName}</p>
+                                    <p>University: ${book.university}</p>
+                                </div>
+                            `;
+                            searchResults.innerHTML += bookDetails;
+                        });
+                    } else {
+                        searchResults.innerHTML = '<p>No books found.</p>';
+                    }
+                } else {
+                    alert('An error occurred. Please try again.');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Unable to connect to the server.');
+            }
+        });
+    </script>
+</body>
+</html> -->
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Profile</title>
+    </head>
+    <body>
+        <h1>Welcome to your profile!</h1>
+        <button id="addBookButton">Add Book</button>
+        <button id="searchBookButton">Search Book</button>
+        <button id="addedBooksButton">Added Books</button>
+        <div id="bookForm" style="display: none;">
+            <h2>Add a Book</h2>
+            <form id="bookFormElement">
+                <label for="bookName">Book Name:</label>
+                <input
+                    type="text"
+                    id="bookName"
+                    name="bookName"
+                    required
+                >
+                <br>
+                <label for="bookGenre">Book Genre:</label>
+                <input
+                    type="text"
+                    id="bookGenre"
+                    name="bookGenre"
+                    required
+                >
+                <br>
+                <label for="bookAuthor">Book Author:</label>
+                <input
+                    type="text"
+                    id="bookAuthor"
+                    name="bookAuthor"
+                    required
+                >
+                <br>
+                <button type="submit">Save Book</button>
+            </form>
+        </div>
+        <div id="searchForm" style="display: none;">
+            <h2>Search a Book</h2>
+            <form id="searchFormElement">
+                <label for="searchQuery">Search:</label>
+                <input
+                    type="text"
+                    id="searchQuery"
+                    name="searchQuery"
+                    required
+                >
+                <br>
+                <button type="submit">Search</button>
+            </form>
+            <div id="searchResults"></div>
+        </div>
+        <div id="addedBooks" style="display: none;">
+            <h2>Added Books</h2>
+            <div id="addedBooksResults"></div>
+        </div>
+        <script>
+        document.getElementById('addBookButton').addEventListener('click', () => {
+            const bookForm = document.getElementById('bookForm');
+            bookForm.style.display = bookForm.style.display === 'none' || bookForm.style.display === '' ? 'block' : 'none';
+        });
+
+        document.getElementById('searchBookButton').addEventListener('click', () => {
+            const searchForm = document.getElementById('searchForm');
+            if (searchForm.style.display === 'none' || searchForm.style.display === '') {
+                searchForm.style.display = 'block';
+            } else {
+                searchForm.style.display = 'none';
+                document.getElementById('searchFormElement').reset(); // Clear the search form fields
+                document.getElementById('searchResults').innerHTML = ''; // Clear the search results
+            }
+        });
+
+        document.getElementById('addedBooksButton').addEventListener('click', async () => {
+            const addedBooks = document.getElementById('addedBooks');
+            const userEmail = localStorage.getItem('userEmail'); // Assuming userEmail is stored in localStorage
+
+            if (addedBooks.style.display === 'none' || addedBooks.style.display === '') {
+                try {
+                    const response = await fetch(`http://localhost:5000/addedBooks?userEmail=${encodeURIComponent(userEmail)}`, {
+                        method: 'GET',
+                        headers: { 'Content-Type': 'application/json' },
+                    });
+
+                    if (response.status === 200) {
+                        const books = await response.json();
+                        const addedBooksResults = document.getElementById('addedBooksResults');
+                        addedBooksResults.innerHTML = '';
+
+                        if (books.length > 0) {
+                            books.forEach(book => {
+                                const bookDetails = `
+                                    <div>
+                                        <h3>${book.bookName}</h3>
+                                        <p>Genre: ${book.bookGenre}</p>
+                                        <p>Author: ${book.bookAuthor}</p>
+                                    </div>
+                                `;
+                                addedBooksResults.innerHTML += bookDetails;
+                            });
+                        } else {
+                            addedBooksResults.innerHTML = '<p>No books found.</p>';
+                        }
+                    } else {
+                        alert('An error occurred. Please try again.');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('Unable to connect to the server.');
+                }
+                addedBooks.style.display = 'block';
+            } else {
+                addedBooks.style.display = 'none';
+                document.getElementById('addedBooksResults').innerHTML = ''; // Clear the added books results
+            }
+        });
+
+        document.getElementById('bookFormElement').addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            const bookName = document.getElementById('bookName').value;
+            const bookGenre = document.getElementById('bookGenre').value;
+            const bookAuthor = document.getElementById('bookAuthor').value;
+            const userEmail = localStorage.getItem('userEmail'); // Assuming userEmail is stored in localStorage
+
+            try {
+                const response = await fetch('http://localhost:5000/addBook', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ bookName, bookGenre, bookAuthor, userEmail }),
+                });
+
+                if (response.status === 201) {
+                    alert('Book added successfully!');
+                    document.getElementById('bookFormElement').reset(); // Clear the form fields
+                    document.getElementById('bookForm').style.display = 'none';
+                } else if (response.status === 400) {
+                    alert('Book already exists. Please try another one.');
+                } else {
+                    alert('An error occurred. Please try again.');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Unable to connect to the server.');
+            }
+        });
+
+        document.getElementById('searchFormElement').addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            const searchQuery = document.getElementById('searchQuery').value;
+
+            try {
+                const response = await fetch(`http://localhost:5000/searchBook?query=${encodeURIComponent(searchQuery)}`, {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' },
+                });
+
+                if (response.status === 200) {
+                    const books = await response.json();
+                    const searchResults = document.getElementById('searchResults');
+                    searchResults.innerHTML = '';
+
+                    if (books.length > 0) {
+                        books.forEach(book => {
+                            const bookDetails = `
+                                <div>
+                                    <h3>${book.bookName}</h3>
+                                    <p>Genre: ${book.bookGenre}</p>
+                                    <p>Author: ${book.bookAuthor}</p>
+                                    <p>Owner: ${book.ownerName}</p>
+                                    <p>University: ${book.university}</p>
+                                </div>
+                            `;
+                            searchResults.innerHTML += bookDetails;
+                        });
+                    } else {
+                        searchResults.innerHTML = '<p>No books found.</p>';
+                    }
+                } else {
+                    alert('An error occurred. Please try again.');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Unable to connect to the server.');
+            }
+        });
+        </script>
+    </body>
+</html>
