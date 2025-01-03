@@ -59,6 +59,19 @@
             <h2>Added Books</h2>
             <div id="addedBooksResults"></div>
         </div>
+        <div id="messageForm" style="display: none;">
+            <h2>Send a Message</h2>
+            <form id="messageFormElement">
+                <label for="messageContent">Message:</label>
+                <textarea id="messageContent" name="messageContent" required></textarea>
+                <br>
+                <button type="submit">Send Message</button>
+            </form>
+        </div>
+        <div id="bookMessages" style="display: none;">
+            <h2>Messages for Book</h2>
+            <div id="bookMessagesResults"></div>
+        </div>
         <script>
         document.getElementById('addBookButton').addEventListener('click', () => {
             const bookForm = document.getElementById('bookForm');
@@ -100,6 +113,7 @@
                                         <p>Genre: ${book.bookGenre}</p>
                                         <p>Author: ${book.bookAuthor}</p>
                                         <button class="deleteBookButton" data-book-name="${book.bookName}">Delete</button>
+                                        <button class="messageBookButton" data-book-name="${book.bookName}" data-user-email="${userEmail}">Messages</button>
                                     </div>
                                 `;
                                 addedBooksResults.innerHTML += bookDetails;
@@ -120,6 +134,47 @@
                                         if (response.status === 200) {
                                             alert('Book deleted successfully!');
                                             event.target.parentElement.remove(); // Remove the book details from the DOM
+                                        } else {
+                                            alert('An error occurred. Please try again.');
+                                        }
+                                    } catch (error) {
+                                        console.error('Error:', error);
+                                        alert('Unable to connect to the server.');
+                                    }
+                                });
+                            });
+
+                            document.querySelectorAll('.messageBookButton').forEach(button => {
+                                button.addEventListener('click', async (event) => {
+                                    const bookName = event.target.getAttribute('data-book-name');
+                                    const userEmail = event.target.getAttribute('data-user-email');
+
+                                    try {
+                                        const response = await fetch(`http://localhost:5000/getMessages?bookName=${encodeURIComponent(bookName)}&userEmail=${encodeURIComponent(userEmail)}`, {
+                                            method: 'GET',
+                                            headers: { 'Content-Type': 'application/json' },
+                                        });
+
+                                        if (response.status === 200) {
+                                            const messages = await response.json();
+                                            const bookMessagesResults = document.getElementById('bookMessagesResults');
+                                            bookMessagesResults.innerHTML = '';
+
+                                            if (messages.length > 0) {
+                                                messages.forEach(message => {
+                                                    const messageDetails = `
+                                                        <div>
+                                                            <p>From: ${message.senderEmail}</p>
+                                                            <p>Message: ${message.message}</p>
+                                                            <p>Timestamp: ${new Date(message.timestamp).toLocaleString()}</p>
+                                                        </div>
+                                                    `;
+                                                    bookMessagesResults.innerHTML += messageDetails;
+                                                });
+                                            } else {
+                                                bookMessagesResults.innerHTML = '<p>No messages found.</p>';
+                                            }
+                                            document.getElementById('bookMessages').style.display = 'block';
                                         } else {
                                             alert('An error occurred. Please try again.');
                                         }
@@ -201,13 +256,49 @@
                                     <p>Author: ${book.bookAuthor}</p>
                                     <p>Owner: ${book.ownerName}</p>
                                     <p>University: ${book.university}</p>
+                                    <button class="messageBookButton" data-user-email="${book.userEmail}">Message</button>
                                 </div>
                             `;
                             searchResults.innerHTML += bookDetails;
                         });
+
+                        document.querySelectorAll('.messageBookButton').forEach(button => {
+                            button.addEventListener('click', (event) => {
+                                const receiverEmail = event.target.getAttribute('data-user-email');
+                                localStorage.setItem('receiverEmail', receiverEmail);
+                                document.getElementById('messageForm').style.display = 'block';
+                            });
+                        });
                     } else {
                         searchResults.innerHTML = '<p>No books found.</p>';
                     }
+                } else {
+                    alert('An error occurred. Please try again.');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Unable to connect to the server.');
+            }
+        });
+
+        document.getElementById('messageFormElement').addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            const messageContent = document.getElementById('messageContent').value;
+            const senderEmail = localStorage.getItem('userEmail');
+            const receiverEmail = localStorage.getItem('receiverEmail');
+
+            try {
+                const response = await fetch('http://localhost:5000/sendMessage', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ senderEmail, receiverEmail, message: messageContent }),
+                });
+
+                if (response.status === 201) {
+                    alert('Message sent successfully!');
+                    document.getElementById('messageFormElement').reset();
+                    document.getElementById('messageForm').style.display = 'none';
                 } else {
                     alert('An error occurred. Please try again.');
                 }

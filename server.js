@@ -33,20 +33,16 @@ const bookSchema = new mongoose.Schema({
     userEmail: String, // Reference to the user
 });
 
+const messageSchema = new mongoose.Schema({
+    senderEmail: String,
+    receiverEmail: String,
+    message: String,
+    timestamp: { type: Date, default: Date.now }
+});
+
 const User = mongoose.model('User', userSchema);
 const Book = mongoose.model('Book', bookSchema);
-
-// app.post('/addBook', async (req, res) => {
-//     const { bookName, bookGenre, bookAuthor, userEmail } = req.body;
-
-//     try {
-//         const newBook = new Book({ bookName, bookGenre, bookAuthor, userEmail });
-//         await newBook.save();
-//         res.status(201).send('Book added successfully');
-//     } catch (error) {
-//         res.status(500).send('Error adding book');
-//     }
-// });
+const Message = mongoose.model('Message', messageSchema);
 
 app.post('/addBook', async (req, res) => {
     const { bookName, bookGenre, bookAuthor, userEmail } = req.body;
@@ -125,7 +121,8 @@ app.get('/searchBook', async (req, res) => {
                 bookGenre: book.bookGenre,
                 bookAuthor: book.bookAuthor,
                 ownerName: user.name,
-                university: user.university
+                university: user.university,
+                userEmail: book.userEmail // Include userEmail in the response
             };
         }));
 
@@ -134,18 +131,6 @@ app.get('/searchBook', async (req, res) => {
         res.status(500).send('Error searching for books');
     }
 });
-// app.get('/addedBooks', async (req, res) => {
-//     const userEmail = req.query.userEmail;
-
-//     try {
-//         const books = await Book.find({ userEmail });
-
-//         res.status(200).json(books);
-//     } catch (error) {
-//         res.status(500).send('Error fetching added books');
-//     }
-// });
-// Start the server
 app.get('/addedBooks', async (req, res) => {
     const userEmail = req.query.userEmail;
 
@@ -170,6 +155,29 @@ app.delete('/deleteBook', async (req, res) => {
         }
     } catch (error) {
         res.status(500).send('Error deleting book');
+    }
+});
+
+app.post('/sendMessage', async (req, res) => {
+    const { senderEmail, receiverEmail, message } = req.body;
+
+    try {
+        const newMessage = new Message({ senderEmail, receiverEmail, message });
+        await newMessage.save();
+        res.status(201).send('Message sent successfully');
+    } catch (error) {
+        res.status(500).send('Error sending message');
+    }
+});
+
+app.get('/getMessages', async (req, res) => {
+    const { bookName, userEmail } = req.query;
+
+    try {
+        const messages = await Message.find({ receiverEmail: userEmail });
+        res.status(200).json(messages);
+    } catch (error) {
+        res.status(500).send('Error fetching messages');
     }
 });
 
