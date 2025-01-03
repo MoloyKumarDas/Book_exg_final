@@ -157,6 +157,22 @@ app.get('/addedBooks', async (req, res) => {
         res.status(500).send('Error fetching added books');
     }
 });
+
+app.delete('/deleteBook', async (req, res) => {
+    const { bookName, userEmail } = req.body;
+
+    try {
+        const result = await Book.deleteOne({ bookName, userEmail });
+        if (result.deletedCount > 0) {
+            res.status(200).send('Book deleted successfully');
+        } else {
+            res.status(404).send('Book not found');
+        }
+    } catch (error) {
+        res.status(500).send('Error deleting book');
+    }
+});
+
 const PORT = 5000;
 app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
