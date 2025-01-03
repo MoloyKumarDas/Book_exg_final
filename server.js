@@ -175,7 +175,16 @@ app.get('/getMessages', async (req, res) => {
 
     try {
         const messages = await Message.find({ receiverEmail: userEmail });
-        res.status(200).json(messages);
+        const results = await Promise.all(messages.map(async message => {
+            const sender = await User.findOne({ email: message.senderEmail });
+            return {
+                senderEmail: message.senderEmail,
+                senderName: sender.name, // Include sender's name
+                message: message.message,
+                timestamp: message.timestamp
+            };
+        }));
+        res.status(200).json(results);
     } catch (error) {
         res.status(500).send('Error fetching messages');
     }
