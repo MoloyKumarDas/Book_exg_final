@@ -2,10 +2,15 @@
 <html lang="en">
     <head>
         <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Signup</title>
+            <link rel="stylesheet" href="style.css">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Signup</title>
     </head>
-    <body>
+            <body style="background-image: url('/static/image/book1.jpeg'); background-size: cover; background-position: center; background-repeat: no-repeat;justify-content: center; ">
+
+            <div class="container">
         <h1>Signup</h1>
         <form id="signupForm">
             <label for="name">Name:</label>
@@ -81,104 +86,6 @@
             }
         });
         </script>
+        </div>
     </body>
 </html>
-<!-- <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign Up Form</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f9;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-        }
-        .form-container {
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            width: 300px;
-        }
-        .form-container h2 {
-            margin-bottom: 15px;
-            text-align: center;
-        }
-        .form-container label {
-            display: block;
-            margin-bottom: 5px;
-        }
-        .form-container input {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 15px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-        }
-        .form-container button {
-            width: 100%;
-            padding: 10px;
-            background-color: #007BFF;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        .form-container button:hover {
-            background-color: #0056b3;
-        }
-    </style>
-</head>
-<body>
-    <div class="form-container">
-        <h2>Sign Up</h2>
-        <form id="signupForm">
-            <label for="name">Name:</label>
-            <input type="text" id="name" name="name" required>
-
-            <label for="email">Email:</label>
-            <input type="email" id="email" name="email" required>
-
-            <label for="university">University:</label>
-            <input type="text" id="university" name="university" required>
-
-            <label for="hometown">Hometown:</label>
-            <input type="text" id="hometown" name="hometown" required>
-
-            <button type="button" id="submitButton">Sign Up</button>
-        </form>
-    </div>
-
-    <script>
-        document.getElementById('submitButton').addEventListener('click', async () => {
-            const name = document.getElementById('name').value;
-            const email = document.getElementById('email').value;
-            const university = document.getElementById('university').value;
-            const hometown = document.getElementById('hometown').value;
-
-            const data = { name, email, university, hometown };
-
-            const response = await fetch('http://localhost:5000/signup', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(data),
-            });
-
-            if (response.ok) {
-                alert('Sign up successful!');
-            } else {
-                alert('Sign up failed. Please try again.');
-            }
-        });
-    </script>
-</body>
-</html> -->

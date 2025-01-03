@@ -13,6 +13,7 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'login.html'));
 });
 app.use(express.static(path.join(__dirname, 'public')));
+app.use('/static', express.static('public'));
 
 mongoose.connect('mongodb://localhost:27017/signupDB', {
     // useNewUrlParser: true,
