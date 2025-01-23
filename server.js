@@ -8,7 +8,6 @@ const app = express();
 app.use(bodyParser.json());
 app.use(cors());
 
-// Serve static files from the "public" directory
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'login.html'));
 });
@@ -28,6 +27,7 @@ const userSchema = new mongoose.Schema({
     password:String,
 });
 const bookSchema = new mongoose.Schema({
+    bookId: { type: String, unique: true }, // Add unique bookId
     bookName: String,
     bookGenre: String,
     bookAuthor: String,
@@ -47,6 +47,7 @@ const Message = mongoose.model('Message', messageSchema);
 
 app.post('/addBook', async (req, res) => {
     const { bookName, bookGenre, bookAuthor, userEmail } = req.body;
+    const bookId = new mongoose.Types.ObjectId(); // Generate a unique bookId
 
     try {
         const existingBook = await Book.findOne({ bookName, userEmail });
@@ -54,9 +55,9 @@ app.post('/addBook', async (req, res) => {
             return res.status(400).send('Book already exists');
         }
 
-        const newBook = new Book({ bookName, bookGenre, bookAuthor, userEmail });
+        const newBook = new Book({ bookId, bookName, bookGenre, bookAuthor, userEmail });
         await newBook.save();
-        res.status(201).send('Book added successfully');
+        res.status(201).send({ message: 'Book added successfully', bookId: newBook.bookId });
     } catch (error) {
         res.status(500).send('Error adding book');
     }
